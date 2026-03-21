@@ -1,0 +1,174 @@
+<style>
+    * {
+    box-sizing: border-box; 
+}
+    body {
+        background-color: #f0f2f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .game-container {
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        padding: 10px;
+        width: 420px;
+        height: 215px;
+        text-align: center;
+    }
+
+    h1 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    #input {
+        width: 70%;
+        padding: 12px;
+        margin-top: 20px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 18px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    #input:focus {
+        border-color: #4A90E2; 
+    }
+
+    button {
+        width: 92px;
+        height: 45px;
+        padding: 12px 20px;
+        background-color: #4A90E2;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 18px;
+        transition: background-color 0.5s;
+    }
+
+    button:hover {
+        background-color: #357ABD;
+    }
+
+    #logs {
+        text-align: left;
+        font-size: 18px;
+        font-weight: bold;
+        color: black;
+        line-height: 1.6;
+        background-color: white;
+        margin: 30px;
+        padding: 10px;
+        width: 420px;
+        height: 215px;
+        text-align: left;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow-y: auto
+    }
+</style>
+<body>
+<div class="game-container">   
+    <h1>🐂 Bulls and Cows 🐄</h1>
+    <form id="form">
+        <input type="text" id="input" placeholder="Enter 4 digits" maxlength="4">
+        <button type="submit">Guess</button>
+    </form>
+</div>
+<div id="logs">
+    <h1>🗒️Result Log✍🏻<br></h1>
+</div>
+<script>    
+const $input = document.querySelector('#input');
+const $form = document.querySelector('#form');
+const $logs = document.querySelector('#logs');
+const numbers = [];
+for (let n = 1; n <= 9; n++) {
+    numbers.push(n);
+}
+const answer = [];
+for (let n = 0; n < 4; n++) {
+    const index = Math.floor(Math.random() * numbers.length);
+    answer.push(numbers[index]);
+    numbers.splice(index, 1);
+}
+console.log(answer);
+const tries = [];
+let out = 0;
+function checkInput(input){
+    if(input.length !== 4){
+        alert('Please give a 4 digit number.');
+        return false;
+    }
+    if(new Set(input).size !== 4){
+        alert('Please give numbers with 4 different digits.');
+        return false;
+    }
+    if(tries.includes(input)){
+        alert('You already tried this number.');
+        return false;
+    }
+    return true;
+}
+const onSubmit = (event) => {
+    event.preventDefault();
+    const value = $input.value;
+    $input.value = '';
+    const valid = checkInput(value);
+    if(!valid){
+        return;
+    }
+    if(answer.join('') === value){
+        $logs.textContent = 'Home run!';
+        $form.removeEventListener('submit', onSubmit);
+        return;
+    }
+    if(tries.length >= 9){
+        const message = document.createTextNode('10 Guesses Used! Game Over! The answer was ' + answer.join(''));
+        $logs.appendChild(message);
+        $form.removeEventListener('submit', onSubmit);
+        return;
+    }
+    if( out === 2){
+        const message = document.createTextNode('3OUT! Game Over! The answer was ' + answer.join(''));
+        $logs.appendChild(message);
+        $form.removeEventListener('submit', onSubmit);
+        return;
+    }
+    let strike = 0;
+    let ball = 0;
+    for (let i = 0; i < answer.length; i++) {
+        const index = value.indexOf(answer[i]);
+        if (index > -1) {
+            if (index === i) {
+                strike+=1;
+            } else {
+                ball+=1;
+            }
+        }
+    }
+    if(strike === 0 && ball === 0){
+        out += 1;
+        $logs.append(`${value}: OUT! (Currently: ${out}OUT)`, document.createElement('br'));
+    } else {
+$logs.append(`${value}: ${strike} strike ${ball} ball`, document.createElement('br'));}
+$logs.scrollTo({
+    top: $logs.scrollHeight,
+    behavior: 'smooth'
+});
+    tries.push(value);
+};
+$form.addEventListener('submit', onSubmit);
+</script>
+</body>
+</html>

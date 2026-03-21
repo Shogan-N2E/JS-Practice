@@ -36,33 +36,43 @@
 <input type="text">
 <button>Submit</button>
 <script>
-const number = Number(prompt('How many players?'));
+let number = Number(prompt('How many players?'));
 const $input = document.querySelector('input');
 const $button = document.querySelector('button');
 const $word = document.querySelector('#word');
 const $order = document.querySelector('#order');
 let newWord;
 let word;
+while (isNaN(number) || number < 1) {
+    alert('Please enter a valid number of players!');
+    number = Number(prompt('How many players?'));
+}
 const onInput = (event) => {
     newWord = event.target.value;
 };
 const onClickButton = () =>{
-    if(!word || word.at(-1) === newWord[0]){
+      if( $input.value.length === 3){
+        newWord = $input.value;
+    } else {
+         alert('Please enter a 3-letter word!');
+        $input.value = '';
+        $input.focus();
+        return;
+      }
+     if(!word || word.at(-1) === newWord[0]){
         word = newWord;
         $word.textContent = word;
         const order = Number($order.textContent);
-        if(order + 1 > number){
-            $order.textContent = 1;
-        } else {
-            $order.textContent = order + 1;
-        }
-    } 
-    else {
-        alert('Wrong Word,sir!');
-    }
-$input.value = '';
-$input.focus();
-};
+           if(order + 1 > number){
+                $order.textContent = 1;
+         } else {
+              $order.textContent = order + 1;
+         }
+      } 
+      else {
+           alert('Wrong Word,sir!');
+      }
+    };;  
 $input.addEventListener('input', onInput);
 $button.addEventListener('click', onClickButton);
 </script>
