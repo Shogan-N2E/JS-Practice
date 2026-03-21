@@ -139,7 +139,7 @@ const onSubmit = (event) => {
         $form.removeEventListener('submit', onSubmit);
         return;
     }
-    if( out === 2){
+    if(out >= 2){
         const message = document.createTextNode('3OUT! Game Over! The answer was ' + answer.join(''));
         $logs.appendChild(message);
         $form.removeEventListener('submit', onSubmit);
