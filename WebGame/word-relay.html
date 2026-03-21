@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Word Relay Game</title>
+<style>
+    #player {
+        font-size: 24px;
+        color: blue;
+        font-weight: bold;
+        text-align: center;
+    }
+    div{
+        font-size: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    input {
+        display: block;
+        margin: 20px auto;
+        padding: 10px;
+        font-size: 18px;
+    }
+    button {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+<div id="player">&lt;Turn: Player<span id = "order">1</span>&gt;</div>
+<div>Propsed Word: <span id ="word"></span></div>
+<input type="text">
+<button>Submit</button>
+<script>
+const number = Number(prompt('How many players?'));
+const $input = document.querySelector('input');
+const $button = document.querySelector('button');
+const $word = document.querySelector('#word');
+const $order = document.querySelector('#order');
+let newWord;
+let word;
+const onInput = (event) => {
+    newWord = event.target.value;
+};
+const onClickButton = () =>{
+    if(!word || word.at(-1) === newWord[0]){
+        word = newWord;
+        $word.textContent = word;
+        const order = Number($order.textContent);
+        if(order + 1 > number){
+            $order.textContent = 1;
+        } else {
+            $order.textContent = order + 1;
+        }
+    } 
+    else {
+        alert('Wrong Word,sir!');
+    }
+$input.value = '';
+$input.focus();
+};
+$input.addEventListener('input', onInput);
+$button.addEventListener('click', onClickButton);
+</script>
+</body>
+</html>
