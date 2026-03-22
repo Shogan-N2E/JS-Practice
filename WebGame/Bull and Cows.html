@@ -139,12 +139,6 @@ const onSubmit = (event) => {
         $form.removeEventListener('submit', onSubmit);
         return;
     }
-    if(out >= 2){
-        const message = document.createTextNode('3OUT! Game Over! The answer was ' + answer.join(''));
-        $logs.appendChild(message);
-        $form.removeEventListener('submit', onSubmit);
-        return;
-    }
     let strike = 0;
     let ball = 0;
     for (let i = 0; i < answer.length; i++) {
@@ -162,6 +156,12 @@ const onSubmit = (event) => {
         $logs.append(`${value}: OUT! (Currently: ${out}OUT)`, document.createElement('br'));
     } else {
 $logs.append(`${value}: ${strike} strike ${ball} ball`, document.createElement('br'));}
+   if(out === 3){
+        const message = document.createTextNode('3OUT! Game Over! The answer was ' + answer.join(''));
+        $logs.appendChild(message);
+        $form.removeEventListener('submit', onSubmit);
+        return;
+    }
 $logs.scrollTo({
     top: $logs.scrollHeight,
     behavior: 'smooth'
