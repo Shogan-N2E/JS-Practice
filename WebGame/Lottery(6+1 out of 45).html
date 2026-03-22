@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lottery Game</title>
+<style>
+    /* all page style (body) */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: rgb(191, 191, 231); 
+        margin: 20px;
+        display: flex; /* Using Flex box, center sort */
+        justify-content: center; /* horizontal center */
+        align-items: center; /* vertical center */
+        height: 100vh; /* Viewport height to ensure it takes the full height of the screen */
+    }
+
+    /* content box (.box) */
+    .box {
+        background-color: #ffffff; 
+        width: 100%;
+        max-width: 600px; /* for responsive webapp max-width */
+        margin: 20px;
+        padding: 40px;
+        border-radius: 20px; 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: none; 
+    }
+
+    /* First child div (Game Title) */
+    .box > div:first-child {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 30px;
+    }
+
+    /* input form (#form) */
+    #form {
+        margin: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 20px; /* the gap between input and button */
+    }
+
+    /* input field (input) */
+    input[name="input"] {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 420px;
+        outline: none;
+        transition: border-color 0.3s ease; /* smooth transition with border color */
+    }
+
+    input[name="input"]:focus {
+        border-color: #19b6d2; /* when focus happens, it change the border color */
+    }
+
+
+    button {
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffffff;
+        background-color: #1976d2; 
+        border: none;
+        border-radius: 10px;
+        cursor: pointer; /* when mouse hovers over the button, the cursor changes to a hand */
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+        background-color: #1565c0; /* when mouse hovers over the button, the background color changes */
+    }
+
+    button:active {
+        transform: translateY(3px); /* when the button is clicked, it moves down slightly */
+    }
+
+    #result, #bonus {
+        display: flex;
+        align-items: center; /* y-axis center align - fit the height of text and ball */
+        justify-content: flex-start; /* left-align (If there is no value of justify-content), this will be used */
+        gap: 15px; 
+        min-height: 50px; /* even if there is something to fill up the spae of row of resulf or bonus, this gets the height of the space in advance not to  pull the space towards bottom */
+        margin-bottom: 20px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .ball {
+        display: inline-flex; /* to make numbers on center-align */
+        justify-content: center;
+        align-items: center;
+        width: 40px; 
+        height: 40px;
+        border-radius: 50%; 
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+        background-color: #ffffff;
+        border: 2px solid #333; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+        text-align: left;
+        transition: transform 0.3s ease;
+    }
+
+    .ball:hover {
+        transform: scale(1.2); /* when mouse hovers over the ball, it scales up slightly */
+    }
+
+    .ball.yellow { background: radial-gradient(circle, #fbc02d, #f9a825); color: #333; border: none; }
+    .ball.blue { background: radial-gradient(circle, #1e88e5, #1565c0); color: #fff; border: none; }
+    .ball.red { background: radial-gradient(circle, #ef5350, #c62828); color: #fff; border: none; }
+    .ball.orange { background: radial-gradient(circle, orange, rgb(248, 196, 99)); color: #fff; border: none; }
+    .ball.green { background: radial-gradient(circle, #66bb6a, #2e7d32); color: #fff; border: none; }
+
+</style>
+</head>
+<body>
+<div class = "box"><h2>🎊Lottery Game (6+1 out of 45)🎊</h2>
+<form id="form">
+    <input name="input" placeholder="Enter 6 numbers between 1 and 45, separated by commas">
+    <button>Draw</button>
+</form>
+<div id="result">🥇Win Numbers : </div>
+<div id="bonus">🥈Bonus Number : </div>
+</div>
+<script>
+    const $form = document.querySelector('#form');
+    const $result = document.querySelector('#result');
+    const $bonus = document.querySelector('#bonus');
+    function colorize(number, $tag){ // A function to set the background color of the ball based on the number
+        if (number <= 10){
+            $tag.style.backgroundColor = 'red';
+            $tag.style.color = 'white';
+        } else if (number <= 20){
+            $tag.style.backgroundColor = 'orange';
+        } else if (number <= 30){
+            $tag.style.backgroundColor = 'yellow';
+        } else if (number <= 40){
+            $tag.style.backgroundColor = 'blue';
+            $tag.style.color = 'white';
+        } else {
+            $tag.style.backgroundColor = 'green';
+            $tag.style.color = 'white';
+        }
+    }
+    function drawball(number, $parent){ // A function to create a ball element with the given number and append it to the parent element
+            const $ball = document.createElement('div');
+            $ball.className = 'ball';
+            $ball.textContent = number;
+            colorize(number, $ball);
+            $parent.appendChild($ball);
+        }
+    const setTimePromise = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); // A helper function to create a delay using promises
+    let clickable = true;
+    $form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!clickable){
+            return;
+        }
+        clickable = false;
+
+        $result.innerHTML = 'Win Numbers : ';
+        $bonus.innerHTML = 'Bonus Number : ';
+        const string = event.target.input.value;
+
+        if (!string.trim()){ // Check if the input is empty or only contains whitespace
+            clickable = true;
+            return alert('Please enter 6 numbers between 1 and 45, separated by commas');
+        }
+        const myNumbers = string.split(',').map((v) => parseInt(v.trim())); // Split the input string by commas, trim whitespace, and convert to integers
+        if (myNumbers.length !== 6){
+            clickable = true;
+            return alert('Please enter exactly 6 numbers');
+        }
+        if (new Set(myNumbers).size !== 6){ // Check for duplicate numbers by comparing the size of the set with the original array
+            clickable = true;
+            return alert('Please enter 6 different numbers');
+        }
+        if (myNumbers.find((v) => v < 1 || v > 45)){ // Check if any number is out of the valid range
+            clickable = true;
+            return alert('Please enter numbers between 1 and 45');
+        }
+
+        const candidate = Array(45).fill().map((v, i) => i + 1); // Create an array of numbers from 1 to 45
+        const shuffle = [];
+        
+        while (candidate.length > 0){ //fisher-yates shuffle algorithm to shuffle the numbers
+            const random = Math.floor(Math.random() * candidate.length);
+            const spliceArray = candidate.splice(random, 1);
+            const value = spliceArray[0];
+            shuffle.push(value);
+        }
+        console.log(shuffle);
+
+        const winNumbers = shuffle.slice(0, 6).sort((a, b) => a - b);
+        const bonusNumber = shuffle[6];
+        console.log(winNumbers, bonusNumber);
+
+        for (let i = 0; i < winNumbers.length; i++){ // Draw the winning numbers one by one with a delay
+            await setTimePromise(1000);
+            console.log(winNumbers[i], i);
+            drawball(winNumbers[i], $result);
+        }
+        await setTimePromise(1000);
+        drawball(bonusNumber, $bonus); // Draw the bonus number after drawing the winning numbers
+        await setTimePromise(2000);
+
+        let count = 0;
+
+        myNumbers.forEach((number) => { // Check how many numbers the player got right
+            if (winNumbers.includes(number)){
+                count++;
+            }
+        });
+        if (count === 6){ // The order of checking the prizes
+            alert('Congratulations! You won the jackpot!');
+            }
+        else if (count === 5 && myNumbers.includes(bonusNumber)){
+                alert('Congratulations! You won the second prize!');
+            } 
+        else if (count === 5){
+                alert('Congratulations! You won the third prize!');
+            } 
+        else if (count === 4){
+                alert('Congratulations! You won the fourth prize!');
+            } 
+        else if (count === 3){
+                alert('Congratulations! You won the fifth prize!');
+            } 
+        else {
+                alert('Sorry, you did not win this time. Try again!');
+            }
+        clickable = true; //To prevent multiple clicks while the game is running
+    });    
+</script>
+</body>
