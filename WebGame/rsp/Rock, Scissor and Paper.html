@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rock, Scissor and Paper</title>
+<style>
+    #computer{
+        height: 200px;
+        width: 165px;
+    }
+</style>
+</head>
+<body>
+    <div id="computer"></div>
+    <div>
+        <button id ="scissors" class="btn">Scissors</button>
+        <button id ="rock" class="btn">Rock</button>
+        <button id ="paper" class="btn">Paper</button>
+    </div>
+    <div id="myScore">0</div>
+    <div id="computerScore">0</div>
+<script>
+const $computer = document.querySelector('#computer');
+const $myScore = document.querySelector('#myScore');
+const $computerScore = document.querySelector('#computerScore');
+const $rock = document.querySelector('#rock');
+const $scissors = document.querySelector('#scissors');
+const $paper = document.querySelector('#paper');
+const IMG_URL = './RSP.png';
+$computer.style.background = `url(${IMG_URL})`;
+$computer.style.backgroundPosition = '0 0';
+$computer.style.backgroundRepeat = 'no-repeat';
+$computer.style.backgroundSize = 'auto 200px';
+const rspX = {
+    scissors: '0px',
+    rock: '-220px',
+    paper: '-440px'
+};
+let computerChoice = 'scissors';
+const changeComputerHand = () => {
+    if(computerChoice === 'scissors'){
+        computerChoice = 'rock';
+    } else if(computerChoice === 'rock'){
+        computerChoice = 'paper';
+    } else if(computerChoice === 'paper'){
+        computerChoice = 'scissors';
+    }
+    $computer.style.background = `url(${IMG_URL}) ${rspX[computerChoice]} 0`;
+    $computer.style.backgroundRepeat = 'no-repeat';
+    $computer.style.backgroundSize = 'auto 200px';
+};
+
+let intervalId = setInterval(changeComputerHand, 300);
+const scoreTable = { // Using a Score Table to determine the winner
+            rock: 0,
+            scissors: 1,
+            paper: -1
+        };
+let clickable = true; // Using a Flag to control the clickability of buttons
+let computerScore = 0;
+let myScore = 0;
+
+const clickButton = (event) => {
+    if(clickable){
+        clearInterval(intervalId);
+        clickable = false;
+        const myChoice = event.target.textContent === 'Rock' ? 'rock' : event.target.textContent === 'Scissors' ? 'scissors' : 'paper';
+        const myScoreValue = scoreTable[myChoice];
+        const computerScoreValue = scoreTable[computerChoice];
+        const scoreDiff = myScoreValue - computerScoreValue;
+        let myMessage = '';
+        let computerMessage = ''; // message variable to store the result message
+        if ([2, -1].includes(scoreDiff)){ // Using Score Difference to determine the winner
+            myMessage = 'You Win!';
+            computerMessage = 'Computer Lose!';
+            myScore++;
+        } else if ([-2, 1].includes(scoreDiff)){
+            myMessage= 'You Lose!';
+            computerMessage = 'Computer Win!';
+            computerScore++;
+        } else {
+            myMessage = 'Draw';
+            computerMessage = 'Draw';
+        }
+        $myScore.textContent = `${myMessage} Current Score: ${myScore}`;
+        $computerScore.textContent = `${computerMessage} Computer Score: ${computerScore}`;
+
+        if (myScore ===3){
+            setTimeout(() => alert('Congratulations! You won the game!'), 0);
+            myScore = 0;
+            computerScore = 0;
+        } else if (computerScore === 3){
+            setTimeout(() => alert('Game Over! The computer won the game!'),0);
+            myScore = 0;
+            computerScore = 0;
+        }
+        // Sissor = 1, Rock = 0, Paper = -1
+        // Score Difference: 0 => Draw, -1 or 2 => Win, 1 or -2 => Lose
+        /*if(scoreDiff === 0){
+            $score.textContent = 'Draw';
+
+            console.log('Draw');
+        } else if(scoreDiff === -1 || scoreDiff === 2){
+            $score.textContent = 'You Win!';
+            console.log('You Win!');
+        } else {
+            $score.textContent = 'You Lose!';
+            console.log('You Lose!');
+        }*/ // Using Score Difference to determine the winner instead of multiple if-else statements
+
+
+        /*if(myChoice === computerChoice){
+            $score.textContent = 'Draw';
+            console.log('Draw');
+        } else if(
+            (myChoice === 'rock' && computerChoice === 'scissors') ||
+            (myChoice === 'scissors' && computerChoice === 'paper') ||
+            (myChoice === 'paper' && computerChoice === 'rock')
+        ){
+            $score.textContent = 'You Win!';
+            console.log('You Win!');
+        } else {
+            $score.textContent = 'You Lose!';
+            console.log('You Lose!');
+        }*/
+        setTimeout(() => {
+            intervalId = setInterval(changeComputerHand, 300);
+            clickable = true;
+        }, 1000);
+    }
+};
+
+/*const clickButton = () => {
+    clearInterval(intervalId);
+    $rock.removeEventListener('click', clickButton);
+    $scissors.removeEventListener('click', clickButton);
+    $paper.removeEventListener('click', clickButton);
+    setTimeout(() => {
+        $rock.addEventListener('click', clickButton); 
+        $scissors.addEventListener('click', clickButton);
+        $paper.addEventListener('click', clickButton);
+        intervalId = setInterval(changeComputerHand, 300);
+    }, 1000);
+};*/ //Using event listeners to control the clickability of buttons
+
+$rock.addEventListener('click', clickButton);
+$scissors.addEventListener('click', clickButton);
+$paper.addEventListener('click', clickButton);
+</script>
+</body>
+</html>
