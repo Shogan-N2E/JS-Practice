@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Responsive Speed Test</title>
+    <style>
+        #screen {
+            width: 300px;
+            height: 200px;
+            text-align: center;
+            user-select: none;
+            font-size: larger;
+        }
+        #screen.waiting{
+            background-color: aqua;
+        }
+        #screen.ready{
+            background-color: red;
+            color: white;
+        }
+        #screen.now{
+            background-color: greenyellow;
+        }
+    </style>
+</head>
+<body>
+<div id="screen" class="waiting">Click to Start</div>
+<div id="result"></div>
+<script>
+    const $screen = document.querySelector('#screen');
+    const $result = document.querySelector('#result');
+    const $order = document.createElement('div');
+    let startTime;
+    let endTime;
+    const record = [];
+    let timeoutId; // Declare timeoutId in the outer scope
+
+    $screen.addEventListener('click', function(){
+        if ($screen.classList.contains('waiting')){
+            startTime = performance.now();
+            $screen.classList.remove('waiting');
+            $screen.classList.add('ready');
+            $screen.textContent = 'When the screen turns green, click!';
+            const timeoutId = setTimeout(function(){
+                $screen.classList.replace('ready', 'now');
+                $screen.textContent = 'Click Now!';
+            }, Math.floor(Math.random() * 1000) + 2000); // Random
+
+        } else if ($screen.classList.contains('ready')){
+            clearTimeout(timeoutId); // Clear the timeout to prevent it from changing the state to 'now'
+            $screen.classList.replace('ready', 'waiting');
+            $screen.textContent = 'Too soon! Click to try again.';
+
+        } else if ($screen.classList.contains('now')){
+            endTime = performance.now(); // Using performance.now() for more accurate timing than new Date()
+            const reactionTime = endTime - startTime;
+            record.push(reactionTime.toFixed(2)); // Store the reaction time in the record array
+            record.sort((a, b) => a - b); // Sort the record array in ascending order
+            const averageTime = record.reduce((a, b) => a + b) / record.length;
+            $result.textContent = `Your reaction time was ${reactionTime.toFixed(2)} ms and average reaction time is ${averageTime.toFixed(2)} ms.`;
+            $order.textContent = `Top 5 is ${record.slice(0, 5).join(', ')} ms.`;
+            $result.after($order);
+            startTime = null;
+            endTime = null;
+            $screen.classList.replace('now', 'waiting');
+            $screen.textContent = 'Click to Start';
+        }
+});
+</script>
+</body>
+</html>
