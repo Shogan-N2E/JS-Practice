@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+ <meta charset="UTF-8">
+<title>Tic Tac Toe</title>
+<style>
+    table {
+        border-collapse: collapse;
+    }
+    td {
+        border: 1px solid black;
+        width: 100px;
+        height: 100px;
+        text-align: center;
+    }
+</style>
+<body>
+<script>
+const {body} = document;
+const $table = document.createElement('table');
+const $result = document.createElement('div');
+const rows = [];
+let turn = 'O';
+const checkWinner = (target) => {
+    const rowIndex = target.parentNode.rowIndex;
+    const cellIndex = target.cellIndex;
+    let hasWinner = false;
+    // Check row
+    if (rows[rowIndex][0].textContent === turn &&
+        rows[rowIndex][1].textContent === turn &&
+        rows[rowIndex][2].textContent === turn) {
+        hasWinner = true;
+    }
+    // Check column
+    if (rows[0][cellIndex].textContent === turn &&
+        rows[1][cellIndex].textContent === turn &&
+        rows[2][cellIndex].textContent === turn) {
+        hasWinner = true; 
+        }
+    // Check diagonal
+    if (rows[0][0].textContent === turn &&
+        rows[1][1].textContent === turn &&
+        rows[2][2].textContent === turn) {
+        hasWinner = true;
+    }
+    if (rows[0][2].textContent === turn &&
+        rows[1][1].textContent === turn &&
+        rows[2][0].textContent === turn) {
+        hasWinner = true;
+        }
+    return hasWinner;
+}
+let clickable = true;
+const callback = (event) => {
+    if (!clickable) return;
+    if (event.target.textContent !== ''){
+        console.log('It is already filled');
+        return;
+    }
+    //if the cell is empty 
+    console.log('It is empty');
+    event.target.textContent = turn;
+    const hasWinner = checkWinner(event.target); // check if there is a winner after the current move
+    if (hasWinner) { //if there is a winner
+        $result.textContent = `${turn} is the winner!`;
+        $table.removeEventListener('click', callback);
+        return;
+    };
+    //if there is no winner, check if it is a draw
+    let draw = true;
+    rows.forEach((row) => {
+        row.forEach((cell) => {
+            if (cell.textContent === '') {
+                draw = false;
+            }
+        });
+    });
+    if (draw) {
+        $result.textContent = 'It is a draw!';
+        return;
+    }
+    turn = turn === 'O' ? 'X' : 'O'; // change the turn to the other player
+    if (turn === 'X'){
+        const emptyCells = rows.flat().filter(cell => cell.textContent === '');
+        // Computer logic for 'X' player
+        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        const randomCell = emptyCells[randomIndex];
+        clickable = false; // disable clicking while the computer is making its move
+        setTimeout(() => {
+        randomCell.textContent = turn; //randomCell refereces the cell that the computer will fill with 'X'
+        const hasWinner = checkWinner(randomCell); // check if there is a winner after the computer's move
+        if (hasWinner) { //if there is a winner
+            $result.textContent = `${turn} is the winner!`;
+            $table.removeEventListener('click', callback);
+            return;
+        }
+        const draw = rows.flat().every(cell => cell.textContent !== ''); // check if it is a draw after the computer's move
+        if (draw) {
+            $result.textContent = 'It is a draw!';
+            return;
+        }
+        turn = turn === 'X' ? 'O' : 'X'; // change the turn to the other player
+        clickable = true; // re-enable clicking for the next move
+        }, 1000); // simulate a delay for the computer's move
+        };
+    }
+
+for (let i = 1; i <= 3; i++){
+    const $tr = document.createElement('tr');
+    const cell = [];
+    for (let j = 1; j <= 3; j++){
+        const $td = document.createElement('td');
+        cell.push($td);
+        $tr.appendChild($td);
+    }
+    rows.push(cell);
+    $table.appendChild($tr);
+}
+body.appendChild($table);           
+body.appendChild($result);
+$table.addEventListener('click', callback);
+</script>
+</body>
+</html>
