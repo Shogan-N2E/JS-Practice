@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TEXT Role-Playing Game</title>
+</head>
+<body>
+<form id = "start-screen">
+    <input type="text" id="name-input" placeholder="Enter your main character's name">
+    <button id="start">Start Game</button>
+</form>
+<div id="Screen">
+    <div id="hero-stat">
+        <span id="hero-name"></span>
+        <span id="hero-level"></span>
+        <span id="hero-hp"></span>
+        <span id="hero-xp"></span>
+        <span id="hero-attack"></span>
+    </div>
+<form id="game-menu" style="display:none">
+    <div id="menu-1">1. Explore</div>
+    <div id="menu-2">2. Rest</div>
+    <div id="menu-3">3. Exit</div>
+    <input id="menu-input"/>
+    <button id="battle-button">Submit</button>
+</form>
+<form id="battle-menu" style="display:none">
+    <div id="battle-1">1. Attack</div>
+    <div id="battle-2">2. Recover</div>
+    <div id="battle-3">3. Run</div>
+    <input id="battle-input"/>
+    <button id="battle-submit">Submit</button>
+</form>
+<div id="message"></div>
+<div id="monster-stat">
+    <span id="monster-name"></span>
+    <span id="monster-hp"></span>
+    <span id="monster-attack"></span>
+</div>
+<script>
+const $startScreen = document.querySelector("#start-screen");
+const $gameMenu = document.querySelector("#game-menu");
+const $battleMenu = document.querySelector("#battle-menu");
+const $heroName = document.querySelector("#hero-name");
+const $heroLevel = document.querySelector("#hero-level");
+const $heroHp = document.querySelector("#hero-hp");
+const $heroXp = document.querySelector("#hero-xp");
+const $heroAttack = document.querySelector("#hero-attack");
+const $monsterName = document.querySelector("#monster-name");
+const $monsterHp = document.querySelector("#monster-hp");
+const $monsterAttack = document.querySelector("#monster-attack");
+const $message = document.querySelector("#message");
+class Game{ //game class will control the flow of the game, and it will also store the hero and monster objects.
+    constructor(name){
+        this.monster = null;
+        this.hero = null;
+        this.monsterList = [
+            { name: "Slime", hp: 30, attack: 5, xp: 20 },
+            { name: "Skeleton", hp: 50, attack: 10, xp: 50 },
+            { name: "Overload", hp: 100, attack: 20, xp: 100 }
+        ];
+        this.start(name);
+        this.updateHeroStat();
+    }
+    start(name){
+        $gameMenu.addEventListener('submit', this.onGameMenuInput);
+        $battleMenu.addEventListener('submit', this.onBattleMenuInput);
+        this.changeScreen('game');
+        this.hero = new Hero(name,this);
+    }
+    changeScreen(screen){ // screen change method
+        if(screen ==='start'){
+            $startScreen.style.display = "block";
+            $gameMenu.style.display = "none";
+            $battleMenu.style.display = "none";
+        } else if (screen === 'game') {
+            $startScreen.style.display = "none";
+            $gameMenu.style.display = "block";
+            $battleMenu.style.display = "none";
+        } else if (screen === 'battle') {
+            $startScreen.style.display = "none";
+            $gameMenu.style.display = "none";
+            $battleMenu.style.display = "block";
+        }
+    }
+    onGameMenuInput = (event) => { // game menu method
+        event.preventDefault();
+        const input = event.target["menu-input"].value;
+        if(input === '1'){
+            this.changeScreen('battle');
+            this.createMonster();
+        } else if (input === '2') {
+            this.hero.hp = this.hero.maxHp;
+            this.updateHeroStat();
+            this.showMessage("You have rested and recovered your HP!");
+        } else if (input === '3') {
+            this.showMessage("You have exited the game...");
+            setTimeout(()=>{
+                this.quit();
+            }, 3000);
+        }
+    }
+    onBattleMenuInput = (event) => { // battle menu method
+        event.preventDefault();
+        const input = event.target["battle-input"].value;
+        if(input === '1'){
+            const { hero, monster } = this;
+            hero.att(monster);
+            monster.att(hero);
+            if (hero.hp <= 0){
+                this.updateHeroStat();
+                this.updateMonsterStat();
+                this.showMessage(`You were defeated by the ${monster.name}...`);
+                setTimeout(()=>{
+                    this.quit();
+                }, 3000);
+                return;
+            } else if (monster.hp <= 0){
+                this.updateHeroStat();
+                this.updateMonsterStat();
+                this.showMessage(`You defeated the ${monster.name} and gained ${monster.xp} XP!`);
+                hero.getXp(monster.xp); // hero will gain xp after defeating the monster, and the getXp method will check if the hero can level up or not.
+                this.monster = null;
+                setTimeout(() => {
+                    this.changeScreen('game'); // after defeating the monster, the game will return to the game menu after 3 seconds.
+                }, 3000);
+               
+            } else {
+            this.updateHeroStat(`You attacked the ${monster.name} for ${hero.attack} damage! 
+            and the ${monster.name} attacked you for ${monster.attack} damage!`);
+            this.updateHeroStat();
+            this.updateMonsterStat();
+            }
+        } else if (input === '2') {
+            const {hero, monster} = this;
+            hero.heal(monster);
+            this.showMessage(`You recovered 20 HP, but the ${monster.name} attacked you for ${monster.attack} damage!`);
+            this.updateHeroStat();
+        } else if (input === '3') {
+            const { monster } = this;
+            this.showMessage(`You ran away from the ${monster.name}...`);
+            setTimeout(() => {
+                this.changeScreen('game');
+                this.monster = null;
+                this.updateMonsterStat();
+            }, 1000);
+        }
+    }
+    quit(){
+        this.hero = null;
+        this.monster = null;
+        this.updateHeroStat();
+        this.updateMonsterStat();
+        $gameMenu.removeEventListener('submit', this.onGameMenuInput);
+        $battleMenu.removeEventListener('submit', this.onBattleMenuInput);
+        this.changeScreen('start');
+        game = null;
+    }
+    updateHeroStat(){
+        const { hero } = this;
+        if (hero === null){
+            $heroName.textContent = "";
+            $heroLevel.textContent = "";
+            $heroHp.textContent = "";
+            $heroXp.textContent = "";
+            $heroAttack.textContent = "";
+            return;
+
+        }
+        $heroName.textContent = hero.name;
+        $heroLevel.textContent = `Level: ${hero.level}`;
+        $heroHp.textContent = `HP: ${hero.hp}/${hero.maxHp}`;
+        $heroXp.textContent = `XP: ${hero.xp}/${hero.level * 15}`;
+        $heroAttack.textContent = `Attack: ${hero.attack}`;
+    }
+    createMonster(){
+        const randomIndex = Math.floor(Math.random() * this.monsterList.length);
+        const randomMonster = this.monsterList[randomIndex];
+        this.monster = new Monster(
+            randomMonster.name,
+            randomMonster.hp,
+            randomMonster.attack,
+            randomMonster.xp
+        );
+        this.updateMonsterStat();
+        this.showMessage(`A wild ${this.monster.name} has appeared!`);
+    }        
+    updateMonsterStat(){
+        const { monster } = this;
+        if (monster === null){
+            $monsterName.textContent = "";
+            $monsterHp.textContent = "";
+            $monsterAttack.textContent = "";
+            return;
+
+        }
+        $monsterName.textContent = monster.name;
+        $monsterHp.textContent = `HP: ${monster.hp}/${monster.maxHp}`;
+        $monsterAttack.textContent = `Attack: ${monster.attack}`;
+    }
+    showMessage(text){
+        $message.textContent = text;
+    }
+}
+
+class Unit{ // Unit class will be the parent class of Hero and Monster classes, and it will contain the common properties and methods of both classes.
+    constructor(name, hp, attack, xp){
+        this.name = name;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.attack = attack;
+        this.xp = xp;
+
+    }
+    att(target){
+        target.hp -= this.attack;
+    }
+}
+class Hero extends Unit{ //main character class, it will contain the properties and methods of the hero, and it will also inherit the properties and methods of the Unit class.
+    constructor(name,game){
+        super(name, 100, 10, 0);
+        this.level = 1;
+        this.game = game;
+
+    }
+    heal(monster){
+        this.hp = Math.min(this.hp + 20, this.maxHp);
+        this.hp -= monster.attack;
+    }
+    getXp(xp){
+        this.xp += xp;
+        while (this.xp >= this.level * 15) {
+            this.xp -= this.level * 15; 
+            this.level++;                
+            this.maxHp += 5;             
+            this.attack += 5;            
+            this.hp = this.maxHp;
+            this.game.showMessage(`Congratulations! You leveled up to level ${this.level}!`);
+        }
+    }
+}
+class Monster extends Unit{ // monster class
+}
+let game = null;
+$startScreen.addEventListener("submit", function(event){
+    event.preventDefault();
+    const name = event.target["name-input"].value;
+    game = new Game(name); //game object will be created when the player starts the game, and the name of the hero will be passed as an argument to the constructor of the Game class.
+});    
+/*const hero = {
+    name: "",
+    level: 1,
+    maxHp: 100,
+    hp: 100,
+    xp: 0,
+    attack: 10,
+    att(monster) {
+        monster.hp -= this.attack;
+        this.hp -= monster.attack;
+    },
+    heal(monster){
+        this.hp += 20;
+        this.hp -= monster.attack;
+    }
+};
+let monster = null;
+const monsters = [
+    { name: "Slime", hp: 30, attack: 5, xp: 20 },
+    { name: "Skeleton", hp: 50, attack: 10, xp: 50 },
+    { name: "Overload", hp: 100, attack: 20, xp: 100 }
+];
+$startScreen.addEventListener("submit", function(event){
+    event.preventDefault();
+    const name = event.target["name-input"].value;
+    $startScreen.style.display = "none";
+    $gameMenu.style.display = "block";
+    $heroName.textContent = name;
+    $heroLevel.textContent = `Level: ${hero.level}`;
+    $heroHp.textContent = `HP: ${hero.hp}/${hero.maxHp}`;
+    $heroXp.textContent = `XP: ${hero.xp}/${hero.level * 15}`;
+    $heroattack.textContent = `Attack: ${hero.attack}`;
+    hero.name = name
+});
+$gameMenu.addEventListener("submit", function(event){
+    event.preventDefault();
+    const choice = event.target["menu-input"].value;
+    if(choice === '1'){
+        $gameMenu.style.display = "none";
+        $battleMenu.style.display = "block";
+        monster =JSON.parse(JSON.stringify(monsters[Math.floor(Math.random() * monsters.length)]));
+        monster.maxHp = monster.hp;
+        $monsterName.textContent = monster.name;
+        $monsterHp.textContent = `HP: ${monster.hp}/${monster.maxHp}`;
+        $monsterAttack.textContent = `Attack: ${monster.attack}`;
+    } else if (input === '2') {
+    } else if (input === '3') {
+    }
+});
+$battleMenu.addEventListener('submit', (event)=>{
+    event.preventDefault();
+    const input = event.target["battle-input"].value;
+    if(input === '1'){
+        hero.att(monster);
+        $heroHp.textContent = `HP: ${hero.hp}/${hero.maxHp}`;
+        $monsterHp.textContent = `HP: ${monster.hp}/${monster.maxHp}`;
+        $message.textContent = `You attacked the ${monster.name} for ${hero.attack} damage!`;
+    } else if (input === '2') {
+    } else if (input === '3') {
+    }
+});*/ // This  code is commented out to prevent errors due to incomplete parsing of the the method in object. The code will be changed into classes.
+</script>
+</body>
+</html>
