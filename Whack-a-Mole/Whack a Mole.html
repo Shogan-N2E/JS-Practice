@@ -1,0 +1,241 @@
+<html>
+<head>
+<title>Whack a Mole</title>
+    <style>
+        .cell{
+            display: inline-block;
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background-color: yellow;
+            overflow: hidden;
+        }
+        .gopher, .bomb{
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            bottom: 0;
+            transition: bottom 1s;
+        }
+        .gopher{
+            background: url('./gopher.png') no-repeat center center;
+            background-size: 200px 200px;
+        }
+        .dead{
+            background: url('./dead_gopher.png') no-repeat center center;
+            background-size: 200px 200px;
+        }
+        .bomb{
+            background: url('./bomb.png') no-repeat center center;
+            background-size: 200px 200px;
+        }
+        .boom{
+            background: url('./explode.png') no-repeat center center;
+            background-size: 200px 200px;
+        }
+        .hidden{
+            bottom: -200px;
+        }
+        .hole{
+            position: absolute;
+            width: 200px;
+            height: 150px;
+            bottom: 0;
+            background: url('./mole-hole.png') no-repeat center center;
+            background-size: 200px 150px;
+        }
+        .hole-front {
+            width: 200px;
+            height: 30px;
+            position: absolute;
+            bottom: 0;
+            background: url('./mole-hole-front.png') no-repeat center center;
+            background-size: 200px 30px;
+        }
+        #timer, #score, #life{
+            font-size: 24px;
+            margin-right: 53px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <span id="timer">Time Limit : 60</span>
+        <span id="score">Dead Gophers: 0</span>
+        <span id="life">Lives: 3</span>
+        <button id="start">Start</button>
+    </div>
+    <div id="game">
+        <div class="row">
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+        </div>
+        <div class="row">
+          <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+        </div>
+        <div class="row">
+          <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+            <div class="cell">
+                <div class="hole"></div>
+                <div class="gopher hidden"></div>
+                <div class="bomb hidden"></div>
+                <div class="hole-front"></div>
+            </div>
+        </div>
+<script>
+    const $timer = document.querySelector('#timer');
+    const $score = document.querySelector('#score');
+    const $game = document.querySelector('#game');
+    const $start = document.querySelector('#start');
+    const $$cells = document.querySelectorAll('.cell');
+    const $life = document.querySelector('#life');
+    const holes = [0,0,0,0,0,0,0,0,0];
+    let started = false;
+    let score = 0;
+    let time = 60;
+    let life = 3;
+    let timerId;
+    let tickId;
+    $start.addEventListener('click', () => {
+        if(started){ 
+            return;
+        }
+        started = true;
+        console.log('Game started');
+        timerId = setInterval(() => {
+            time = (time * 10 - 1) / 10; // (600 - 1)/10 is impossible to get 0, so we need to use this way to make sure time can be 0 and-0.1 has problem with floating point, so we need to multiply by 10 and divide by 10 to avoid this problem
+            $timer.textContent = `Time Limit : ${time.toFixed(1)}`;
+            if(time === 0){
+                clearInterval(timerId);
+                clearInterval(tickId);
+                setTimeout(() => {
+                    alert(`Game over! Your score is ${score}`);
+                    started = false;
+                    score = 0;
+                    time = 60;
+                    life = 3;
+                    $score.textContent = `Dead Gophers: ${score}`;
+                    $timer.textContent = `Time Limit : ${time.toFixed(1)}`;
+                    $life.textContent = `Lives: ${life}`;
+                }, 50);
+            }
+        }, 100);
+        tickId = setInterval(tick,1000);
+        tick();
+    });
+    let gopherPercent = 0.3;
+    let bombPercent = 0.5;
+    function tick(){
+        holes.forEach((hole, index) => {
+            if(hole){
+                return;
+            }
+            const randomValue = Math.random();
+            if(randomValue < gopherPercent){
+            const $gopher = $$cells[index].querySelector('.gopher');
+            holes[index] = setTimeout(() => {
+                $gopher.classList.add('hidden');
+                holes[index] = 0;
+            }, 1000);
+            $gopher.classList.remove('hidden');
+        }
+            else if(randomValue < bombPercent){
+                const $bomb = $$cells[index].querySelector('.bomb');
+                holes[index] = setTimeout(() => {
+                    $bomb.classList.add('hidden');
+                    holes[index] = 0;
+                }, 1000);
+                $bomb.classList.remove('hidden');
+            }
+        });
+    }        
+    $$cells.forEach(($cell, index) => {
+        $cell.querySelector('.gopher').addEventListener('click', (event) => {
+            if (!event.target.classList.contains('dead')){
+                score++;
+                $score.textContent = `Dead Gophers: ${score}`;
+            }
+            event.target.classList.add('dead');
+            event.target.classList.add('hidden');
+            clearTimeout(holes[index]);
+            setTimeout(() => {
+                holes[index] = 0;
+                event.target.classList.remove('dead');
+            }, 1000);
+        });
+        $cell.querySelector('.bomb').addEventListener('click', (event) => {
+            if(event.target.classList.contains('bomb')){
+                event.target.classList.add('boom');
+                event.target.classList.add('hidden');
+                clearTimeout(holes[index]);
+                setTimeout(() => {
+                    holes[index] = 0;
+                    event.target.classList.remove('boom');
+                }, 1000);
+                life--;
+                $life.textContent = `Lives: ${life}`;
+                if(life === 0){
+                    clearInterval(timerId);
+                    clearInterval(tickId);
+                    setTimeout(() => {
+                        alert(`Game over! Your score is ${score}`);
+                        started = false;
+                        score = 0;
+                        time = 60;
+                        life = 3;
+                        $score.textContent = `Dead Gophers: ${score}`;
+                        $timer.textContent = `Time Limit : ${time.toFixed(1)}`;
+                        $life.textContent = `Lives: ${life}`;
+                    }, 50);
+                }
+            }
+        });
+    });
+    
+</script>
+</body>
+</html>
